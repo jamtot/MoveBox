@@ -74,19 +74,24 @@ public class Player extends GameObject {
                 float normX = touchX - (float) x;
                 float normY = touchY - (float) y;
 
-                double length = Math.sqrt(((normX * normX) + (normY * normY)));
+                //double length = Math.sqrt(normX * normX + normY * normY);
+                //x += (normX / length) * moveSpeed;
+               //y += (normY / length) * moveSpeed;
+
+                double length = Math.sqrt(normX * normX);
                 x += (normX / length) * moveSpeed;
-                y += (normY / length) * moveSpeed;
 
-
-                if (Math.sqrt((normX * normX) + (normY * normY)) < moveSpeed) {
+                /*if (Math.sqrt((normX * normX) + (normY * normY)) < moveSpeed) {
                     x = (int) touchX;
                     y = (int) touchY;
+                }*/
+
+                if (Math.sqrt(normX * normX) < moveSpeed) {
+                    x = (int) touchX;
+                    //y = (int) touchY;
                 }
             }
             //x = (int)touchX;
-
-
 
         }
 

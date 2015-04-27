@@ -113,6 +113,16 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     public void update() {
         if (player.isPlaying()) {
             //bg.update();
+            if (touchX < (player.getWidth()/2)){
+                touchX = player.getWidth()/2;
+            } else if (touchX > (WIDTH - (player.getWidth()/2))){
+                touchX = (WIDTH -  (player.getWidth()/2));
+            }
+            if (touchY < (player.getHeight()/2)){
+                touchY = player.getHeight()/2;
+            } else if (touchY > (HEIGHT - (player.getHeight()/2))){
+                touchY = (HEIGHT -  (player.getHeight()/2));
+            }
             player.update(touchX, touchY);
 
             long boxElapsed = (System.nanoTime() - boxStartTime) / 1000000;
