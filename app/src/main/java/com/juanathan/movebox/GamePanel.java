@@ -1,7 +1,7 @@
 package com.juanathan.movebox;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
+//import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -28,10 +28,14 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     private Random rand = new Random();
     private long boxStartTime;
     private int best;
-    private ParticleSystem pSys;
-    private boolean drawPlayer = true;
-    private boolean makeParticles = false;
 
+    private ParticleSystem pSys;
+    private boolean makeParticles = false;
+    private boolean drawPlayer = true;
+
+    private boolean switchy = false;
+
+    private float touchX, touchY;
 
     public GamePanel(Context context) {
         //surfaceviews constructor
@@ -67,12 +71,11 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         //abstantiate here
-
-
         //bg = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.blackstripes));
-        player = new Player(240, 700, 100, 100);
+        player = new Player(240, 700, 100, 100, 10);
         boldBoxes = new ArrayList<>();
         boxStartTime = System.nanoTime();
+        player.setSwitchy((switchy));
 
         thread = new MainThread(getHolder(), this);
         //we can safely start the game loop
@@ -83,14 +86,26 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            touchX = event.getX();
+            touchX = (touchX / getWidth()) * WIDTH;
+            touchY = event.getY();
+            touchY = (touchY / getHeight()) * HEIGHT;
+
             if (!player.isPlaying()) {
                 player.setPlaying(true);
                 player.resetScore();
                 boldBoxes.clear();
                 drawPlayer = true;
             } else {
-                player.switchSide();
+               if (switchy){
+                   player.switchSide();
+               }
             }
+        }
+
+        if (event.getAction() == MotionEvent.ACTION_MOVE){
+            touchX = event.getX();
+            touchY = event.getY();
         }
         return super.onTouchEvent(event);
     }
@@ -98,7 +113,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     public void update() {
         if (player.isPlaying()) {
             //bg.update();
-            player.update();
+            player.update(touchX, touchY);
 
             long boxElapsed = (System.nanoTime() - boxStartTime) / 1000000;
             if (boxElapsed > (2000 - player.getScore() * 3)) {
@@ -120,8 +135,6 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                 if (collision(boldBoxes.get(i), player)) {
                     boldBoxes.remove(i);
                     player.setPlaying((false));
-                    drawPlayer = false;
-                    makeParticles = true;
                     break;
                 }
 
@@ -132,10 +145,15 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                     break;
                 }
             }
+            if (makeParticles == false){
+                makeParticles = true;
+                pSys = null;
+            }
         } else {
             if (makeParticles){
                 makeParticles = false;
                 pSys = new ParticleSystem((float)player.getX(), (float)player.getY(), 50, 1);
+                drawPlayer = false;
             }
             pSys.update();
         }
@@ -159,9 +177,15 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
             canvas.scale(scaleFactorX, scaleFactorY);
 
             canvas.drawARGB(255,0,0,0);
+
             //bg.draw(canvas);
-            if (drawPlayer) {
+
+            if (drawPlayer){
                 player.draw(canvas);
+            } else if (pSys != null) {
+                if (pSys.isAlive()) {
+                    pSys.draw(canvas);
+                }
             }
 
             for (int i = 0; i < boldBoxes.size(); i++){
@@ -199,7 +223,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
             paint1.setTextSize(20);
             canvas.drawText("TAP SCREEN TO SWITCH SIDES", 100, HEIGHT / 2 + 20, paint1);
 
-            pSys.draw(canvas);
+            //pSys.draw(canvas);
         }
 
     }

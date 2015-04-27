@@ -9,7 +9,7 @@ import android.graphics.Paint;
  */
 public class Player extends GameObject {
 
-    private boolean playing = false;
+    private boolean playing;
     private int score;
     private boolean onLeft;
     Paint paint = new Paint();
@@ -19,14 +19,16 @@ public class Player extends GameObject {
     private int gVal;
     private int colourSpeed;
     private boolean fancy;
+    private boolean switchy;
+    private int moveSpeed;
 
-    public Player(int x, int y, int w, int h){
+    public Player(int x, int y, int w, int h, int moveSpeed){
         this.x = x;
         this.y = y;
         this.width = w;
         this.height = h;
+        this.moveSpeed = moveSpeed;
 
-        playing = false;
         score = 0;
 
         onLeft = true;
@@ -36,35 +38,57 @@ public class Player extends GameObject {
         colourSpeed = 5;
 
         fancy = true;
+        playing = false;
 
         paint.setStyle(Paint.Style.FILL);
         paint1.setStyle(Paint.Style.FILL);
         paint.setColor(Color.CYAN);
-
-
     }
 
-    public void update(){
-        if (onLeft){
-            if ((x-dx) > 120){
-                dx-=1;
-            } else{
-                dx = 0;
-                x = 120;
-            }
-        } else {
-            if ((x+dx) < 360){
-                dx+=1;
+    public void update(float touchX, float touchY) {
+        if (switchy) {
+            if (onLeft) {
+                if ((x - dx) > 120) {
+                    dx -= 1;
+                } else {
+                    dx = 0;
+                    x = 120;
+                }
             } else {
-                dx = 0;
-                x = 360;
+                if ((x + dx) < 360) {
+                    dx += 1;
+                } else {
+                    dx = 0;
+                    x = 360;
+                }
             }
+
+
+            if (dx > 8) dx = 8;
+            if (dx < -8) dx = -8;
+
+            x += dx * 2;
+        } else {
+
+            if (x != (int)touchX && y != (int)touchY) {
+                float normX = touchX - (float) x;
+                float normY = touchY - (float) y;
+
+                double length = Math.sqrt(((normX * normX) + (normY * normY)));
+                x += (normX / length) * moveSpeed;
+                y += (normY / length) * moveSpeed;
+
+
+                if (Math.sqrt((normX * normX) + (normY * normY)) < moveSpeed) {
+                    x = (int) touchX;
+                    y = (int) touchY;
+                }
+            }
+            //x = (int)touchX;
+
+
+
         }
-
-        if (dx>8) dx = 8;
-        if (dx< -8) dx = -8;
-
-        x += dx*2;
 
         if (fancy) {
             if (rToG) {
@@ -87,12 +111,9 @@ public class Player extends GameObject {
             paint.setColor(Color.rgb(rVal, gVal, 255));
             paint1.setColor(Color.rgb(gVal, rVal, 255));
         }
-
-
     }
 
     public void draw(Canvas canvas){
-
         canvas.drawRect((x - width / 2), (y - height / 2), (x + width / 2), (y + height / 2), paint);
         if (fancy)
         canvas.drawRect((x - width / 4), (y - height / 4), (x + width / 4), (y + height / 4), paint1);
@@ -104,6 +125,15 @@ public class Player extends GameObject {
             } else {
                 onLeft = true;
             }
+    }
+
+    public void goTo(int posX, int posY){
+        float normX = (float)posX - (float)x;
+        float normY = (float)posY - (float)y;
+
+        double length = Math.sqrt( ((normX * normX) + (normY * normY)) );
+        x+=normX/length;
+        y+=normY/length;
     }
 
     public boolean isPlaying() {
@@ -124,5 +154,9 @@ public class Player extends GameObject {
 
     public void incScore() {
         this.score++;
+    }
+
+    public void setSwitchy(boolean switchy) {
+        this.switchy = switchy;
     }
 }
