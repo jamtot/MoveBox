@@ -14,6 +14,8 @@ public class BoldBox extends GameObject {
     //enum BoxType {STRAIGHT_SHOOTER, SIDE_SWITCHER, CARDBOARD_CONCENTRATOR, CONFUSED_CRATE, PAUSING_PACKAGE}
     ArrayList<ColourPair> cPs;
     Paint paint = new Paint();
+    private boolean fancy;
+
 
     public BoldBox(int x, int y, int width, int height){
         super.x= x;
@@ -21,20 +23,24 @@ public class BoldBox extends GameObject {
         super.width = width;
         super.height = height;
 
+        fancy = true;
+
         cPs = new ArrayList<ColourPair>(3);
         cPs.add(new ColourPair(0, true, 5, 255));
         cPs.add(new ColourPair(128, true, 5, 255));
         cPs.add(new ColourPair(255, false, 5, 255));
 
         paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.MAGENTA);
     }
 
     public void update() {
-
-        for (ColourPair cp: cPs){
-            cp.update();
+        if (fancy) {
+            for (ColourPair cp : cPs) {
+                cp.update();
+            }
+            paint.setColor(Color.rgb(cPs.get(0).getcVal(), cPs.get(1).getcVal(), cPs.get(2).getcVal()));
         }
-        paint.setColor(Color.rgb(cPs.get(0).getcVal(), cPs.get(1).getcVal(), cPs.get(2).getcVal()));
 
         dy +=1;
 

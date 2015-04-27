@@ -9,7 +9,7 @@ import android.graphics.Paint;
  */
 public class Player extends GameObject {
 
-    private boolean playing;
+    private boolean playing = false;
     private int score;
     private boolean onLeft;
     Paint paint = new Paint();
@@ -18,6 +18,7 @@ public class Player extends GameObject {
     private int rVal;
     private int gVal;
     private int colourSpeed;
+    private boolean fancy;
 
     public Player(int x, int y, int w, int h){
         this.x = x;
@@ -34,8 +35,13 @@ public class Player extends GameObject {
         rToG = true;
         colourSpeed = 5;
 
+        fancy = true;
+
         paint.setStyle(Paint.Style.FILL);
         paint1.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.CYAN);
+
+
     }
 
     public void update(){
@@ -60,33 +66,35 @@ public class Player extends GameObject {
 
         x += dx*2;
 
-        if (rToG){
-            rVal-=colourSpeed;
-            gVal+=colourSpeed;
-            if (rVal <= 0){
-                rVal = 0;
-                gVal = 255;
-                rToG = false;
+        if (fancy) {
+            if (rToG) {
+                rVal -= colourSpeed;
+                gVal += colourSpeed;
+                if (rVal <= 0) {
+                    rVal = 0;
+                    gVal = 255;
+                    rToG = false;
+                }
+            } else {
+                rVal += colourSpeed;
+                gVal -= colourSpeed;
+                if (rVal >= 255) {
+                    rVal = 255;
+                    gVal = 0;
+                    rToG = true;
+                }
             }
-        } else {
-            rVal+=colourSpeed;
-            gVal-=colourSpeed;
-            if (rVal >= 255){
-                rVal = 255;
-                gVal = 0;
-                rToG = true;
-            }
+            paint.setColor(Color.rgb(rVal, gVal, 255));
+            paint1.setColor(Color.rgb(gVal, rVal, 255));
         }
 
-        paint.setColor(Color.rgb(rVal, gVal, 255));
-        paint1.setColor(Color.rgb(gVal, rVal, 255));
+
     }
 
     public void draw(Canvas canvas){
 
-
-
         canvas.drawRect((x - width / 2), (y - height / 2), (x + width / 2), (y + height / 2), paint);
+        if (fancy)
         canvas.drawRect((x - width / 4), (y - height / 4), (x + width / 4), (y + height / 4), paint1);
     }
 

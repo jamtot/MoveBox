@@ -22,12 +22,15 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     public static final int HEIGHT = 856;
     public static final int MOVESPEED = 10;
     private MainThread thread;
-    private Background bg;
+    //private Background bg;
     private Player player;
     private ArrayList<BoldBox> boldBoxes;
     private Random rand = new Random();
     private long boxStartTime;
     private int best;
+    private ParticleSystem pSys;
+    private boolean drawPlayer = true;
+    private boolean makeParticles = false;
 
 
     public GamePanel(Context context) {
@@ -54,7 +57,6 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
             try {
                 thread.setRunning(false);
                 thread.join();
-                retry = false;
                 thread = null;
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -65,11 +67,12 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         //abstantiate here
-        bg = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.pinkbluebg2));
+
+
+        //bg = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.blackstripes));
         player = new Player(240, 700, 100, 100);
         boldBoxes = new ArrayList<>();
         boxStartTime = System.nanoTime();
-
 
         thread = new MainThread(getHolder(), this);
         //we can safely start the game loop
@@ -84,6 +87,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                 player.setPlaying(true);
                 player.resetScore();
                 boldBoxes.clear();
+                drawPlayer = true;
             } else {
                 player.switchSide();
             }
@@ -93,7 +97,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     public void update() {
         if (player.isPlaying()) {
-            bg.update();
+            //bg.update();
             player.update();
 
             long boxElapsed = (System.nanoTime() - boxStartTime) / 1000000;
@@ -116,6 +120,8 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                 if (collision(boldBoxes.get(i), player)) {
                     boldBoxes.remove(i);
                     player.setPlaying((false));
+                    drawPlayer = false;
+                    makeParticles = true;
                     break;
                 }
 
@@ -126,6 +132,12 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
                     break;
                 }
             }
+        } else {
+            if (makeParticles){
+                makeParticles = false;
+                pSys = new ParticleSystem((float)player.getX(), (float)player.getY(), 50, 1);
+            }
+            pSys.update();
         }
 
         if (player.getScore()> best){
@@ -141,13 +153,16 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         final float scaleFactorY = getHeight()/(HEIGHT*1.f);
 
         if (canvas != null) {
+
             final int savedState = canvas.save();
 
             canvas.scale(scaleFactorX, scaleFactorY);
 
-            bg.draw(canvas);
-
-            player.draw(canvas);
+            canvas.drawARGB(255,0,0,0);
+            //bg.draw(canvas);
+            if (drawPlayer) {
+                player.draw(canvas);
+            }
 
             for (int i = 0; i < boldBoxes.size(); i++){
                 boldBoxes.get(i).draw(canvas);
@@ -168,7 +183,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     public void drawText(Canvas canvas){
         Paint paint = new Paint();
-        paint.setColor(Color.BLACK);
+        paint.setColor(Color.WHITE);
         paint.setTextSize(30);
         paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         canvas.drawText("SCORE: " + player.getScore(), 10, HEIGHT - 10, paint);
@@ -177,13 +192,14 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
         if (!player.isPlaying()){
             Paint paint1 = new Paint();
             paint1.setTextSize(40);
+            paint1.setColor((Color.WHITE));
             paint1.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             canvas.drawText("PRESS TO START", 90, HEIGHT / 2, paint1);
 
             paint1.setTextSize(20);
             canvas.drawText("TAP SCREEN TO SWITCH SIDES", 100, HEIGHT / 2 + 20, paint1);
 
-
+            pSys.draw(canvas);
         }
 
     }
